@@ -77,7 +77,7 @@ def stop(message):
 
 if __name__ == "__main__":
     # Create the job in schedule.
-    schedule.every().day.at("09:00").do(send_daily_report)
+    schedule.every().day.at("00:00").do(send_daily_report)
 
     # Spin up a thread to run the schedule check so it doesn't block your bot.
     # This will take the function schedule_checker which will check every minute
