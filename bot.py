@@ -84,4 +84,4 @@ if __name__ == "__main__":
     # to see if the scheduled job needs to be ran.
     Thread(target=schedule_checker).start() 
 
-    bot.polling()
+    bot.infinity_polling()
