@@ -24,7 +24,7 @@ subscribed_users_collection = db.get_collection("subscribers")
 def schedule_checker():
     while True:
         schedule.run_pending()
-        sleep(60)
+        sleep(1)
 
 
 def get_report():
@@ -54,15 +54,28 @@ def send_daily_report():
     print('error value: ',error)
     subscribed_users = subscribed_users_collection.find({"subscribed": True})
     counter = 0
-    for user_id in subscribed_users:
-        if not error:
-            bot.send_message(user_id, report)
-        else:
-            bot.send_message(
-                user_id, "Sorry, an error occurred when calling the server. We can't show the daily report today :(")
+    for user in subscribed_users:
+        try:
+            if not error:
+                bot.send_message(user["user_id"], report)
+            else:
+                bot.send_message(
+                    user["user_id"], "Sorry, an error occurred when calling the server. We can't show the daily report today :(")
+        except telebot.apihelper.ApiTelegramException as e:
+            print(f"Failed to send message to chat ID {user}: {e}")
         counter = counter + 1
         if counter % 5 == 0:
             sleep(5)
+    print('done sending report')
+
+@bot.message_handler(commands=['report'])
+def report(message):
+    user_id = message.from_user.id
+    bot.send_message(user_id, "Getting report")
+    report, error = get_report()
+    print('sending daily report initialized')
+    print('error value: ',error)
+    bot.send_message(user_id, report)
     print('done sending report')
 
 @bot.message_handler(commands=['start'])
@@ -108,7 +121,7 @@ def stop(message):
 
 if __name__ == "__main__":
     # Create the job in schedule.
-    schedule.every().day.at("00:00").do(send_daily_report)  # 09:00 for MSK
+    schedule.every().day.at("09:00", "Europe/Moscow").do(send_daily_report)  # 09:00 for MSK
 
     # Spin up a thread to run the schedule check so it doesn't block your bot.
     # This will take the function schedule_checker which will check every minute
